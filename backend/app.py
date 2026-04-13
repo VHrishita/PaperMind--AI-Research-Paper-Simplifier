@@ -347,7 +347,8 @@ def list_papers():
             "word_count": len(p["text"].split()),
         })
     return jsonify({"papers": papers})
-
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
 
 # ── Run ────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
