@@ -15,7 +15,7 @@ import {
  */
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://papermind-backend-89cg.onrender.com/api";
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let uploadedPapers = [];          // Array of { paper_id, filename, word_count }
