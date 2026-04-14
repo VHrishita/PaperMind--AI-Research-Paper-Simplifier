@@ -11,14 +11,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 /**
- * PaperMind — FULL FIXED Frontend Script
- * Includes deployment-safe backend URL + proper sidebar/select restore fixes.
+ * PaperMind — Frontend Script
  */
 
-// ── DEPLOYMENT SAFE API BASE ───────────────────────────────────────────────
-const API_BASE = window.location.hostname.includes("onrender.com")
-  ? `${window.location.origin}/api`
-  : "http://localhost:5000/api";
+const API_BASE = `${window.location.origin}/api`;
 // ── STATE ──────────────────────────────────────────────────────────────────
 let uploadedPapers = [];
 let activePaperId = null;
