@@ -353,7 +353,8 @@ if __name__ == "__main__":
 # ── Run ────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     print("=" * 50)
-    print("  PaperMind Backend Starting...")
-    print("  Visit: http://localhost:5000")
+    print("PaperMind Backend Starting...")
     print("=" * 50)
-    app.run(debug=True, port=5000)
+
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
