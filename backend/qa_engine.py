@@ -94,8 +94,8 @@ def build_index(text: str):
     """
     sentences = [s.strip() for s in sent_tokenize(text) if len(s.split()) > 4]
 
-    if USE_SBERT and sbert_model:
-        embeddings = sbert_model.encode(sentences, show_progress_bar=False)
+if False:
+    embeddings = sbert_model.encode(sentences, show_progress_bar=False)
         return {
             "sentences": sentences,
             "embeddings": embeddings,
