@@ -123,7 +123,7 @@ def keywords():
     data = request.json
     paper_id = data.get("paper_id")
 
-    if paper_id not in :
+    if paper_id not in papers_store :
         return jsonify({"error": "Paper not found"}), 404
 
     kws = papers_store[paper_id].get("keywords",[])
