@@ -314,3 +314,304 @@ onAuthStateChanged(auth, async (user) => {
     console.error("Restore failed:", err);
   }
 });
+
+// ===================== MISSING ANALYSIS FEATURES =====================
+
+// ── CHAT / ASK PAPER ────────────────────────────────────────────────
+$("#btn-ask")?.addEventListener("click", async () => {
+  const paperId = $("#chat-paper-select")?.value;
+  const question = $("#chat-input")?.value?.trim();
+
+  if (!paperId) return showToast("Select a paper first.");
+  if (!question) return showToast("Ask something first.");
+
+  showLoading("Thinking...");
+
+  try {
+    const res = await fetch(`${API_BASE}/ask`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        paper_id: paperId,
+        question
+      })
+    });
+
+    const data = await res.json();
+    hideLoading();
+
+    $("#chat-output").textContent = data.answer || "No answer found.";
+    show($("#chat-result"));
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    showToast("Chat failed.");
+  }
+});
+
+// ── SIMPLIFY ────────────────────────────────────────────────────────
+$("#btn-simplify")?.addEventListener("click", async () => {
+  const paperId = $("#simplify-paper-select")?.value;
+  const level = $("#simplify-level")?.value || "beginner";
+
+  if (!paperId) return showToast("Select a paper first.");
+
+  showLoading("Simplifying...");
+
+  try {
+    const res = await fetch(`${API_BASE}/simplify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        paper_id: paperId,
+        level
+      })
+    });
+
+    const data = await res.json();
+    hideLoading();
+
+    $("#simplify-output").textContent =
+      data.simplified || "No simplified text.";
+    show($("#simplify-result"));
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    showToast("Simplify failed.");
+  }
+});
+
+// ── KEYWORDS ────────────────────────────────────────────────────────
+$("#btn-keywords")?.addEventListener("click", async () => {
+  const paperId = $("#keywords-paper-select")?.value;
+  if (!paperId) return showToast("Select a paper first.");
+
+  showLoading("Extracting keywords...");
+
+  try {
+    const res = await fetch(`${API_BASE}/keywords`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        paper_id: paperId
+      })
+    });
+
+    const data = await res.json();
+    hideLoading();
+
+    $("#keywords-output").innerHTML = (data.keywords || [])
+      .map(k => `<span class="keyword-chip">${k}</span>`)
+      .join(" ");
+
+    show($("#keywords-result"));
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    showToast("Keyword extraction failed.");
+  }
+});
+
+// ── SECTIONS ────────────────────────────────────────────────────────
+$("#btn-sections")?.addEventListener("click", async () => {
+  const paperId = $("#sections-paper-select")?.value;
+  if (!paperId) return showToast("Select a paper first.");
+
+  showLoading("Detecting sections...");
+
+  try {
+    const res = await fetch(`${API_BASE}/sections`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        paper_id: paperId
+      })
+    });
+
+    const data = await res.json();
+    hideLoading();
+
+    const sections = data.sections || {};
+    let html = "";
+
+    Object.entries(sections).forEach(([title, content]) => {
+      html += `
+        <div class="section-card">
+          <h4>${title}</h4>
+          <p>${content}</p>
+        </div>
+      `;
+    });
+
+    $("#sections-output").innerHTML = html;
+    show($("#sections-result"));
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    showToast("Sections failed.");
+  }
+});
+
+// ── COMPARE PAPERS ──────────────────────────────────────────────────
+$("#btn-compare")?.addEventListener("click", async () => {
+  const checked = [
+    ...document.querySelectorAll("#compare-paper-checkboxes input:checked")
+  ].map(el => el.value);
+
+  if (checked.length < 2) {
+    return showToast("Select at least 2 papers.");
+  }
+
+  showLoading("Comparing papers...");
+
+  try {
+    const res = await fetch(`${API_BASE}/compare`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        paper_ids: checked
+      })
+    });
+
+    const data = await res.json();
+    hideLoading();
+
+    let html = "";
+
+    (data.comparison || []).forEach(item => {
+      html += `
+        <div class="compare-card">
+          <h3>${item.title}</h3>
+          <p><b>Objective:</b> ${item.objective}</p>
+          <p><b>Methodology:</b> ${item.methodology}</p>
+          <p><b>Results:</b> ${item.results}</p>
+          <p><b>Conclusion:</b> ${item.conclusion}</p>
+        </div>
+      `;
+    });
+
+    $("#compare-output").innerHTML = html;
+    show($("#compare-result"));
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    showToast("Comparison failed.");
+  }
+});
+
+// ── WORD2VEC / RELATED TERMS ────────────────────────────────────────
+$("#btn-w2v")?.addEventListener("click", async () => {
+  const paperId = $("#w2v-paper-select")?.value;
+  const term = $("#w2v-term")?.value?.trim();
+
+  if (!paperId) return showToast("Select a paper.");
+  if (!term) return showToast("Enter a term.");
+
+  showLoading("Finding related terms...");
+
+  try {
+    const res = await fetch(`${API_BASE}/word2vec`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        paper_id: paperId,
+        term
+      })
+    });
+
+    const data = await res.json();
+    hideLoading();
+
+    $("#w2v-output").innerHTML = (data.related_terms || [])
+      .map(item => `<div>${item.term} (${item.score})</div>`)
+      .join("");
+
+    show($("#w2v-result"));
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    showToast("Word2Vec failed.");
+  }
+});
+
+// ── VISUALIZE ───────────────────────────────────────────────────────
+$("#btn-visualize")?.addEventListener("click", async () => {
+  const checked = [
+    ...document.querySelectorAll("#compare-paper-checkboxes input:checked")
+  ].map(el => el.value);
+
+  if (checked.length < 1) {
+    return showToast("Select papers to visualize.");
+  }
+
+  showLoading("Generating chart...");
+
+  try {
+    const res = await fetch(`${API_BASE}/visualize`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        paper_ids: checked
+      })
+    });
+
+    const data = await res.json();
+    hideLoading();
+
+    console.log("Visualization data:", data);
+    showToast("Visualization data ready ✅");
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    showToast("Visualization failed.");
+  }
+});
+
+// ── EXPORT REPORT ───────────────────────────────────────────────────
+$("#btn-export")?.addEventListener("click", async () => {
+  const paperId = activePaperId || $("#summary-paper-select")?.value;
+  if (!paperId) return showToast("Select a paper first.");
+
+  showLoading("Preparing export...");
+
+  try {
+    const res = await fetch(`${API_BASE}/export`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        paper_id: paperId
+      })
+    });
+
+    const blob = await res.blob();
+    hideLoading();
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "paper_report.txt";
+    a.click();
+
+    showToast("Export downloaded ✅");
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    showToast("Export failed.");
+  }
+});
