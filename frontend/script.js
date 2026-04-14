@@ -14,7 +14,8 @@ import {
  * PaperMind — Frontend Script
  */
 
-const API_BASE = `${window.location.origin}/api`;
+const API_BASE = "https://papermind-ai-research-paper-simplifier-2.onrender.com/api";
+
 // ── STATE ──────────────────────────────────────────────────────────────────
 let uploadedPapers = [];
 let activePaperId = null;
