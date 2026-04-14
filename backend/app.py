@@ -65,31 +65,59 @@ def upload_files():
 
 @app.route("/api/summarize", methods=["POST"])
 def summarize():
-    data = request.json
+    data = request.get_json()
     paper_id = data.get("paper_id")
+    mode = data.get("mode", "short")
 
     if paper_id not in papers_store:
         return jsonify({"error": "Paper not found"}), 404
 
     text = papers_store[paper_id]["text"]
-    summary = " ".join(text.split()[:120])
+
+    sentences = text.split(". ")
+
+    if mode == "one-line":
+        summary = sentences[0][:200]
+
+    elif mode == "bullets":
+        summary = [s.strip() for s in sentences[:5] if s.strip()]
+
+    else:  # paragraph
+        summary = ". ".join(sentences[:5])
 
     return jsonify({"summary": summary})
-
+    
 
 @app.route("/api/ask", methods=["POST"])
-def ask_question():
-    data = request.json
+def ask():
+    data = request.get_json()
     paper_id = data.get("paper_id")
-    question = data.get("question", "")
+    question = data.get("question", "").lower()
 
     if paper_id not in papers_store:
         return jsonify({"error": "Paper not found"}), 404
 
     text = papers_store[paper_id]["text"]
-    answer = f"Based on the paper, here's a response to: {question}\n\n{text[:500]}..."
 
-    return jsonify({"answer": answer})
+    if "method" in question:
+        keyword = "methodology"
+    elif "result" in question:
+        keyword = "result"
+    elif "conclusion" in question:
+        keyword = "conclusion"
+    else:
+        keyword = "abstract"
+
+    idx = text.lower().find(keyword)
+
+    if idx != -1:
+        answer = text[idx:idx+1200]
+    else:
+        answer = text[:1200]
+
+    return jsonify({
+        "answer": f"Based on the paper, here's a response to: {data['question']}\n\n{answer}"
+    })
 
 
 @app.route("/api/keywords", methods=["POST"])
@@ -127,7 +155,7 @@ def sections():
 
 @app.route("/api/simplify", methods=["POST"])
 def simplify():
-    data = request.json
+    data = request.get_json()
     paper_id = data.get("paper_id")
     level = data.get("level", "beginner")
 
@@ -135,13 +163,16 @@ def simplify():
         return jsonify({"error": "Paper not found"}), 404
 
     text = papers_store[paper_id]["text"]
-    sentences = text.split(".")
-    simplified = ". ".join(sentences[:5])
+    sentences = text.split(". ")
 
-    if level == "child":
-        simplified = "This paper talks about: " + simplified
-    elif level == "expert":
-        simplified = "Technical explanation: " + simplified
+    if level == "beginner":
+        simplified = "This paper explains: " + ". ".join(sentences[:3])
+
+    elif level == "student":
+        simplified = "Academic explanation: " + ". ".join(sentences[:5])
+
+    else:  # viva
+        simplified = "Key defense points:\n- " + "\n- ".join(sentences[:5])
 
     return jsonify({"simplified": simplified})
 
