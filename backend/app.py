@@ -47,7 +47,14 @@ def allowed_file(filename):
 
 
 # ── Routes ─────────────────────────────────────────────────────────────────────
-
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({
+        "message": "PaperMind backend is live 🚀",
+        "health": "/api/health",
+        "upload": "/api/upload"
+    })
+    
 @app.route("/api/health", methods=["GET"])
 def health():
     """Health check endpoint"""
