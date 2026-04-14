@@ -16,11 +16,9 @@ import {
  */
 
 // ── DEPLOYMENT SAFE API BASE ───────────────────────────────────────────────
-const API_BASE =
-  window.location.hostname === "localhost"
-    ? "http://localhost:5000/api"
-    : "https://papermind-ai-research-paper-simplifier-2.onrender.com/api";
-
+const API_BASE = window.location.hostname.includes("onrender.com")
+  ? `${window.location.origin}/api`
+  : "http://localhost:5000/api";
 // ── STATE ──────────────────────────────────────────────────────────────────
 let uploadedPapers = [];
 let activePaperId = null;
