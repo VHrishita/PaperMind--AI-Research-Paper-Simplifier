@@ -73,10 +73,10 @@ def summarize():
     paper_id = data.get("paper_id")
     mode = data.get("mode", "short")
 
-    if paper_id not in :
+    if paper_id not in papers_store:
         return jsonify({"error": "Paper not found. Please upload first."}), 404
 
-    text = [paper_id]["text"]
+    text = papers_store[paper_id]["text"]
 
     try:
         if mode == "bullets":
@@ -102,10 +102,10 @@ def simplify():
     paper_id = data.get("paper_id")
     level = data.get("level", "beginner")
 
-    if paper_id not in :
+    if paper_id not in papers_store:
         return jsonify({"error": "Paper not found"}), 404
 
-    text = [paper_id]["text"]
+    text = papers_store[paper_id]["text"]
 
     try:
         simplified = simplify_text(text, level=level)
@@ -126,7 +126,7 @@ def keywords():
     if paper_id not in :
         return jsonify({"error": "Paper not found"}), 404
 
-    kws = [paper_id]["keywords"]
+    kws = papers_store[paper_id].get("keywords",[])
     return jsonify({"keywords": kws})
 
 
@@ -142,7 +142,7 @@ def sections():
     if paper_id not in papers_store:
         return jsonify({"error": "Paper not found"}), 404
 
-    secs = papers_store[paper_id]["sections"]
+    secs = papers_store[paper_id].get("sections", {})
     return jsonify({"sections": secs})
 
 
