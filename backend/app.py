@@ -13,7 +13,6 @@ import traceback
 from backend.summarizer import summarize_text, extract_key_points, one_line_summary
 from backend.qa_engine import answer_question, build_index
 from backend.compare import compare_papers
-from backend.visualizer import generate_topic_visualization, word2vec_explore
 from backend.utils import (
     extract_text_from_pdf,
     detect_sections,
