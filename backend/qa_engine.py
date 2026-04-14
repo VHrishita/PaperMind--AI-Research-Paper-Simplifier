@@ -1,8 +1,7 @@
 """
 PaperMind - Q&A Engine
-Semantic question answering over PDF text using TF-IDF cosine similarity.
-Falls back gracefully if sentence-transformers is unavailable.
-No external API needed.
+TF-IDF cosine similarity based semantic Q&A
+Optimized for Render free deployment
 """
 
 import re
@@ -14,10 +13,10 @@ import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 
-for pkg in ["punkt", "stopwords", "punkt_tab"]:
+for pkg in ["punkt", "stopwords"]:
     try:
         nltk.download(pkg, quiet=True)
-    except Exception:
+    except:
         pass
 
 STOP_WORDS = set(stopwords.words("english"))
