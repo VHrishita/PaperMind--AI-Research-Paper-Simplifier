@@ -46,7 +46,7 @@ def upload_files():
         text = extract_text_from_pdf(filepath)
         paper_id = unique_id
 
-        papers_store[paper_id] = {
+        [paper_id] = {
             "filename": filename,
             "text": text,
             "path": filepath,
@@ -73,10 +73,10 @@ def summarize():
     paper_id = data.get("paper_id")
     mode = data.get("mode", "short")
 
-    if paper_id not in paper_store:
+    if paper_id not in :
         return jsonify({"error": "Paper not found. Please upload first."}), 404
 
-    text = paper_store[paper_id]["text"]
+    text = [paper_id]["text"]
 
     try:
         if mode == "bullets":
@@ -102,10 +102,10 @@ def simplify():
     paper_id = data.get("paper_id")
     level = data.get("level", "beginner")
 
-    if paper_id not in paper_store:
+    if paper_id not in :
         return jsonify({"error": "Paper not found"}), 404
 
-    text = paper_store[paper_id]["text"]
+    text = [paper_id]["text"]
 
     try:
         simplified = simplify_text(text, level=level)
@@ -123,10 +123,10 @@ def keywords():
     data = request.json
     paper_id = data.get("paper_id")
 
-    if paper_id not in paper_store:
+    if paper_id not in :
         return jsonify({"error": "Paper not found"}), 404
 
-    kws = paper_store[paper_id]["keywords"]
+    kws = [paper_id]["keywords"]
     return jsonify({"keywords": kws})
 
 
@@ -139,10 +139,10 @@ def sections():
     data = request.json
     paper_id = data.get("paper_id")
 
-    if paper_id not in paper_store:
+    if paper_id not in papers_store:
         return jsonify({"error": "Paper not found"}), 404
 
-    secs = paper_store[paper_id]["sections"]
+    secs = papers_store[paper_id]["sections"]
     return jsonify({"sections": secs})
 
 
@@ -156,13 +156,13 @@ def ask():
     paper_id = data.get("paper_id")
     question = data.get("question", "")
 
-    if paper_id not in paper_store:
+    if paper_id not in papers_store:
         return jsonify({"error": "Paper not found"}), 404
 
     if not question.strip():
         return jsonify({"error": "Question cannot be empty"}), 400
 
-    text = paper_store[paper_id]["text"]
+    text = papers_store[paper_id]["text"]
 
     try:
         answer = answer_question(text, question)
@@ -185,9 +185,9 @@ def compare():
 
     papers = {}
     for pid in paper_ids:
-        if pid not in paper_store:
+        if pid not in papers_store:
             return jsonify({"error": f"Paper '{pid}' not found"}), 404
-        papers[pid] = paper_store[pid]
+        papers[pid] = papers_store[pid]
 
     try:
         comparison = compare_papers(papers)
@@ -207,12 +207,12 @@ def visualize():
 
     texts = {}
     for pid in paper_ids:
-        if pid in paper_store:
-            texts[pid] = paper_store[pid]["text"]
+        if pid in papers_store:
+            texts[pid] = papers_store[pid]["text"]
 
     if not texts:
         # Use all papers
-        texts = {pid: p["text"] for pid, p in paper_store.items()}
+        texts = {pid: p["text"] for pid, p in papers_store.items()}
 
     if not texts:
         return jsonify({"error": "No papers uploaded"}), 400
@@ -234,13 +234,13 @@ def word2vec():
     paper_id = data.get("paper_id")
     term = data.get("term", "")
 
-    if paper_id not in paper_store:
+    if paper_id not in papers_store:
         return jsonify({"error": "Paper not found"}), 404
 
     if not term.strip():
         return jsonify({"error": "Term cannot be empty"}), 400
 
-    text = paper_store[paper_id]["text"]
+    text = papers_store[paper_id]["text"]
 
     try:
         related = word2vec_explore(text, term)
@@ -258,10 +258,10 @@ def export():
     data = request.json
     paper_id = data.get("paper_id")
 
-    if paper_id not in paper_store:
+    if paper_id not in papers_store:
         return jsonify({"error": "Paper not found"}), 404
 
-    paper = paper_store[paper_id]
+    paper = papers_store[paper_id]
 
     try:
         # Build full report data
@@ -288,7 +288,7 @@ def export():
 def list_papers():
     """List all uploaded papers"""
     papers = []
-    for pid, p in paper_store.items():
+    for pid, p in papers_store.items():
         papers.append({
             "paper_id": pid,
             "filename": p["filename"],
