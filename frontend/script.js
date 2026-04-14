@@ -261,6 +261,7 @@ function addPaperToSelects(paper) {
   });
 
   // Add to compare checkboxes
+  console.log("Compare checkbox added:", paper.paper_id);
   const checkboxGroup = $("#compare-paper-checkboxes");
   const empty = checkboxGroup.querySelector(".empty-hint");
   if (empty) empty.remove();
