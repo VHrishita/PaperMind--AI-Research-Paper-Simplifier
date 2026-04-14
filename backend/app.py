@@ -13,8 +13,8 @@ import traceback
 # Import our custom modules
 from summarizer import summarize_text, extract_key_points, one_line_summary
 from qa_engine import answer_question, build_index
-from compare import compare_papers
-from visualizer import generate_topic_visualization, word2vec_explore
+#from compare import compare_papers
+#from visualizer import generate_topic_visualization, word2vec_explore
 from utils import (
     extract_text_from_pdf,
     detect_sections,
@@ -225,81 +225,24 @@ def ask():
 
 @app.route("/api/compare", methods=["POST"])
 def compare():
-    """
-    Compare multiple papers.
-    Body: { paper_ids: [id1, id2, ...] }
-    """
-    data = request.json
-    paper_ids = data.get("paper_ids", [])
-
-    if len(paper_ids) < 2:
-        return jsonify({"error": "Please provide at least 2 paper IDs to compare"}), 400
-
-    papers = {}
-    for pid in paper_ids:
-        if pid not in paper_store:
-            return jsonify({"error": f"Paper '{pid}' not found"}), 404
-        papers[pid] = paper_store[pid]
-
-    try:
-        comparison = compare_papers(papers)
-        return jsonify({"comparison": comparison})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
+    return jsonify({
+        "comparison": "Compare feature temporarily disabled for lightweight deployment"
+    })
 
 @app.route("/api/visualize", methods=["POST"])
 def visualize():
-    """
-    Generate topic visualization (PCA/t-SNE).
-    Body: { paper_ids: [...] }
-    """
-    data = request.json
-    paper_ids = data.get("paper_ids", [])
-
-    texts = {}
-    for pid in paper_ids:
-        if pid in paper_store:
-            texts[pid] = paper_store[pid]["text"]
-
-    if not texts:
-        # Use all papers
-        texts = {pid: p["text"] for pid, p in paper_store.items()}
-
-    if not texts:
-        return jsonify({"error": "No papers uploaded"}), 400
-
-    try:
-        chart_data = generate_topic_visualization(texts)
-        return jsonify({"chart_data": chart_data})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return jsonify({
+        "chart_data": [],
+        "message": "Visualization temporarily disabled"
+    })
 
 
 @app.route("/api/word2vec", methods=["POST"])
 def word2vec():
-    """
-    Explore related concepts using Word2Vec.
-    Body: { paper_id, term }
-    """
-    data = request.json
-    paper_id = data.get("paper_id")
-    term = data.get("term", "")
-
-    if paper_id not in paper_store:
-        return jsonify({"error": "Paper not found"}), 404
-
-    if not term.strip():
-        return jsonify({"error": "Term cannot be empty"}), 400
-
-    text = paper_store[paper_id]["text"]
-
-    try:
-        related = word2vec_explore(text, term)
-        return jsonify({"related_terms": related, "query": term})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
+    return jsonify({
+        "related_terms": [],
+        "message": "Word2Vec temporarily disabled"
+    })
 
 @app.route("/api/export", methods=["POST"])
 def export():
