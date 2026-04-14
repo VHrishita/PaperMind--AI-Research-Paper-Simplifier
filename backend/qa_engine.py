@@ -21,20 +21,6 @@ for pkg in ["punkt", "stopwords"]:
 
 STOP_WORDS = set(stopwords.words("english"))
 
-# Try to load sentence-transformers for better semantic matching
-USE_SBERT = False
-sbert_model = None
-try:
-    from sentence_transformers import SentenceTransformer
-
-model = None
-
-def get_model():
-    global model
-    if model is None:
-        model = SentenceTransformer("all-MiniLM-L6-v2")
-    return model
-
 
 # ── TF-IDF Vector Helpers ───────────────────────────────────────────────────────
 
