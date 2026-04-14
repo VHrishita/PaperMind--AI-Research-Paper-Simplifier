@@ -1,14 +1,13 @@
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import os
+import io
 import uuid
 from werkzeug.utils import secure_filename
 from PyPDF2 import PdfReader
 
 app = Flask(__name__)
-
-# ✅ IMPORTANT: allow frontend requests from Vercel
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(app)
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -126,9 +125,9 @@ def sections():
     })
 
 
-@app.route("/api/health", methods=["GET"])
-def health():
-    return jsonify({"status": "ok"})
+@app.route("/")
+def home():
+    return "PaperMind backend running"
 
 
 if __name__ == "__main__":
