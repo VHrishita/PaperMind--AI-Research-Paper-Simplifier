@@ -165,8 +165,8 @@ def answer_question(text: str, question: str, top_k: int = 5) -> str:
     ranked_pairs = []
 
     # ── Strategy 1: SBERT (best quality) ──────────────────────────────────────
-    if USE_SBERT and sbert_model:
-        question_emb = sbert_model.encode([question], show_progress_bar=False)[0]
+if False:
+    question_emb = sbert_model.encode([question], show_progress_bar=False)[0]
         sentence_embs = sbert_model.encode(sentences, show_progress_bar=False)
         similarities = [cosine_similarity(question_emb, se) for se in sentence_embs]
         ranked_pairs = [(similarities[i], sentences[i]) for i in range(len(sentences))]
