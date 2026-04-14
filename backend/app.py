@@ -10,12 +10,11 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import traceback
 
-# Import our custom modules
-from summarizer import summarize_text, extract_key_points, one_line_summary
-from qa_engine import answer_question, build_index
-#from compare import compare_papers
-#from visualizer import generate_topic_visualization, word2vec_explore
-from utils import (
+from backend.summarizer import summarize_text, extract_key_points, one_line_summary
+from backend.qa_engine import answer_question, build_index
+from backend.compare import compare_papers
+from backend.visualizer import generate_topic_visualization, word2vec_explore
+from backend.utils import (
     extract_text_from_pdf,
     detect_sections,
     extract_keywords,
