@@ -19,7 +19,7 @@ import {
 const API_BASE =
   window.location.hostname === "localhost"
     ? "http://localhost:5000/api"
-    : "https://https://papermind-ai-research-paper-simplifier-2.onrender.com//api";
+    : "https://papermind-ai-research-paper-simplifier-2.onrender.com/api";
 
 // ── STATE ──────────────────────────────────────────────────────────────────
 let uploadedPapers = [];
