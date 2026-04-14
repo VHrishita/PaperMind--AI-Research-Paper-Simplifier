@@ -27,11 +27,14 @@ USE_SBERT = False
 sbert_model = None
 try:
     from sentence_transformers import SentenceTransformer
-    sbert_model = SentenceTransformer("all-MiniLM-L6-v2")
-    USE_SBERT = True
-    print("[QA Engine] Using Sentence-BERT for semantic matching.")
-except Exception:
-    print("[QA Engine] sentence-transformers not available. Using TF-IDF fallback.")
+
+model = None
+
+def get_model():
+    global model
+    if model is None:
+        model = SentenceTransformer("all-MiniLM-L6-v2")
+    return model
 
 
 # ── TF-IDF Vector Helpers ───────────────────────────────────────────────────────
