@@ -829,78 +829,7 @@ $("#btn-export").addEventListener("click", async () => {
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
 
-  const snapshot = await get(ref(db, `users/${user.uid}/papers`));
-
-  if (snapshot.exists()) {
-    const papers = snapshot.val();
-
-    // Clear old UI before restoring
-    uploadedPapers = [];
-    document.querySelector("#paper-list").innerHTML = "";
-    document.querySelector("#compare-paper-checkboxes").innerHTML = "";
-
-    // Clear all selects
-    [
-      "#chat-paper-select",
-      "#summary-paper-select",
-      "#simplify-paper-select",
-      "#keywords-paper-select",
-      "#sections-paper-select",
-      "#w2v-paper-select"
-    ].forEach(sel => {
-      const el = document.querySelector(sel);
-      if (el) {
-        el.innerHTML = `<option value="">— Select a paper —</option>`;
-      }
-    });
-
-    Object.values(papers).forEach((paper) => {
-      uploadedPapers.push(paper);
-      addPaperToSidebar(paper);
-      addPaperToSelects(paper);
-      activePaperId = paper.paper_id;
-    });
-
-    console.log("Old papers restored");
-  }
-});
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return;
-
-  const snapshot = await get(ref(db, `users/${user.uid}/papers`));
-
-  if (snapshot.exists()) {
-    const papers = snapshot.val();
-
-    uploadedPapers = [];
-    document.querySelector("#paper-list").innerHTML = "";
-    document.querySelector("#compare-paper-checkboxes").innerHTML = "";
-
-    [
-      "#chat-paper-select",
-      "#summary-paper-select",
-      "#simplify-paper-select",
-      "#keywords-paper-select",
-      "#sections-paper-select",
-      "#w2v-paper-select"
-    ].forEach(sel => {
-      const el = document.querySelector(sel);
-      if (el) {
-        el.innerHTML = `<option value="">— Select a paper —</option>`;
-      }
-    });
-
-    Object.values(papers).forEach((paper) => {
-      uploadedPapers.push(paper);
-      addPaperToSidebar(paper);
-      addPaperToSelects(paper);
-      activePaperId = paper.paper_id;
-    });
-
-    console.log("Old papers restored");
-  }
-
-  // ✅ restore old chats AFTER papers restored
+  // ONLY restore chat history UI
   const chatSnapshot = await get(ref(db, `users/${user.uid}/history/chat`));
 
   if (chatSnapshot.exists()) {
@@ -909,13 +838,15 @@ onAuthStateChanged(auth, async (user) => {
     const chatMessages = document.querySelector("#chat-messages");
     if (chatMessages) chatMessages.innerHTML = "";
 
-    chats
-      .filter(chat => chat.paper_id === activePaperId)
-      .forEach(chat => {
-        addChatBubble(chat.question, "user");
-        addChatBubble(chat.answer, "ai");
-      });
+    chats.forEach(chat => {
+      addChatBubble(chat.question, "user");
+      addChatBubble(chat.answer, "ai");
+    });
 
     console.log("Old chats restored");
   }
+
+  // DO NOT restore papers automatically
+  uploadedPapers = [];
+  activePaperId = null;
 });
