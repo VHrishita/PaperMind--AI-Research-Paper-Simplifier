@@ -784,8 +784,7 @@ try {
 
   } catch (err) {
     removeTypingIndicator();
-    addChatBubble("Cannot connect to backend. Make sure Flask is running on port 5000.", "ai");
-  }
+addChatBubble("Backend request failed. The deployed server may have restarted, so please re-upload the paper.", "ai");  }
 }
 
 
