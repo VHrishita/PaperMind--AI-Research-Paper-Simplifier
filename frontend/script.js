@@ -11,20 +11,16 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 /**
- * PaperMind — Frontend Script
- * FINAL Production Ready Version
+ * PaperMind - FINAL FULL PRODUCTION SCRIPT
  */
 
-// ================= CONFIG =================
 const API_BASE = "https://papermind-ai-research-paper-simplifier-2.onrender.com/api";
 
-// ================= STATE =================
 let uploadedPapers = [];
 let activePaperId = null;
 let pdfDoc = null;
 let pdfCurrentPage = 1;
 
-// ================= HELPERS =================
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
@@ -47,12 +43,13 @@ function hideLoading() {
 
 function showToast(msg, duration = 3000) {
   const toast = $("#toast");
+  if (!toast) return;
   toast.textContent = msg;
   show(toast);
   setTimeout(() => hide(toast), duration);
 }
 
-// ================= NAVIGATION =================
+/* ================= NAVIGATION ================= */
 $$(".nav-item").forEach(btn => {
   btn.addEventListener("click", () => {
     const panelName = btn.dataset.panel;
@@ -67,11 +64,7 @@ $$(".nav-item").forEach(btn => {
   });
 });
 
-$("#hamburger")?.addEventListener("click", () => {
-  $("#sidebar").classList.toggle("open");
-});
-
-// ================= PDF PREVIEW =================
+/* ================= PDF ================= */
 if (typeof pdfjsLib !== "undefined") {
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -96,21 +89,7 @@ async function renderPDFPage(pageNum) {
   $("#pdf-page-info").textContent = `Page ${pageNum} of ${pdfDoc.numPages}`;
 }
 
-$("#pdf-prev")?.addEventListener("click", () => {
-  if (pdfCurrentPage > 1) {
-    pdfCurrentPage--;
-    renderPDFPage(pdfCurrentPage);
-  }
-});
-
-$("#pdf-next")?.addEventListener("click", () => {
-  if (pdfDoc && pdfCurrentPage < pdfDoc.numPages) {
-    pdfCurrentPage++;
-    renderPDFPage(pdfCurrentPage);
-  }
-});
-
-// ================= FILE UPLOAD =================
+/* ================= FILE UPLOAD ================= */
 const dropZone = $("#drop-zone");
 const fileInput = $("#file-input");
 
@@ -129,7 +108,9 @@ dropZone?.addEventListener("drop", (e) => {
   handleFiles(e.dataTransfer.files);
 });
 
-fileInput?.addEventListener("change", () => handleFiles(fileInput.files));
+fileInput?.addEventListener("change", () => {
+  handleFiles(fileInput.files);
+});
 
 async function handleFiles(files) {
   if (!files?.length) return;
@@ -145,7 +126,7 @@ async function handleFiles(files) {
   }
 
   if (!firstFile) {
-    showToast("Please upload PDF files only.");
+    showToast("Please upload only PDF files.");
     return;
   }
 
@@ -173,9 +154,6 @@ async function handleFiles(files) {
       return;
     }
 
-    const statusContainer = $("#upload-status");
-    show(statusContainer);
-
     for (const paper of data.papers) {
       if (paper.error) {
         showToast(paper.error);
@@ -188,25 +166,10 @@ async function handleFiles(files) {
       addPaperToSidebar(paper);
       addPaperToSelects(paper);
 
-      statusContainer.insertAdjacentHTML("beforeend", `
-        <div class="upload-item success">
-          <span class="upload-item-icon">✓</span>
-          <div class="upload-item-info">
-            <div class="upload-item-name">${paper.filename}</div>
-            <div class="upload-item-meta">${paper.word_count.toLocaleString()} words</div>
-          </div>
-        </div>
-      `);
-
       const user = auth.currentUser;
       if (user) {
         const paperRef = push(ref(db, `users/${user.uid}/papers`));
-        await set(paperRef, {
-          filename: paper.filename,
-          paper_id: paper.paper_id,
-          word_count: paper.word_count,
-          uploadedAt: new Date().toISOString()
-        });
+        await set(paperRef, paper);
       }
     }
 
@@ -214,43 +177,41 @@ async function handleFiles(files) {
 
   } catch (err) {
     hideLoading();
-    showToast("Backend connection failed.");
     console.error(err);
+    showToast("Backend connection failed.");
   }
 }
 
-// ================= PAPER UI =================
+/* ================= PAPER UI ================= */
 function addPaperToSidebar(paper) {
   const list = $("#paper-list");
-  const chip = document.createElement("div");
+  if (!list) return;
 
+  const chip = document.createElement("div");
   chip.className = "paper-chip";
   chip.innerHTML = `
     <div class="paper-chip-dot"></div>
     <div class="paper-chip-name">${paper.filename}</div>
   `;
 
-  chip.addEventListener("click", () => {
+  chip.onclick = () => {
     activePaperId = paper.paper_id;
     syncSelects(paper.paper_id);
-  });
+  };
 
   list.appendChild(chip);
 }
 
 function addPaperToSelects(paper) {
-  const selectors = [
+  [
     "#chat-paper-select",
     "#summary-paper-select",
     "#simplify-paper-select",
     "#keywords-paper-select",
     "#sections-paper-select"
-  ];
-
-  selectors.forEach(sel => {
+  ].forEach(sel => {
     const el = $(sel);
     if (!el) return;
-
     el.insertAdjacentHTML(
       "beforeend",
       `<option value="${paper.paper_id}">${paper.filename}</option>`
@@ -271,7 +232,7 @@ function syncSelects(paperId) {
   });
 }
 
-// ================= SUMMARY =================
+/* ================= SUMMARY ================= */
 $("#btn-summarize")?.addEventListener("click", async () => {
   const paperId = $("#summary-paper-select").value;
   if (!paperId) return showToast("Select a paper.");
@@ -293,7 +254,101 @@ $("#btn-summarize")?.addEventListener("click", async () => {
   $("#summary-content").textContent = data.summary;
 });
 
-// ================= CHAT =================
+/* ================= SIMPLIFY ================= */
+$("#btn-simplify")?.addEventListener("click", async () => {
+  const paperId = $("#simplify-paper-select").value;
+  if (!paperId) return showToast("Select a paper.");
+
+  showLoading("Simplifying paper...");
+
+  const res = await fetch(`${API_BASE}/simplify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      paper_id: paperId,
+      level: "beginner"
+    })
+  });
+
+  const data = await res.json();
+  hideLoading();
+
+  if (data.error) return showToast(data.error);
+
+  show($("#simplify-output"));
+  $("#simplify-content").textContent = data.simplified;
+});
+
+/* ================= KEYWORDS ================= */
+$("#btn-keywords")?.addEventListener("click", async () => {
+  const paperId = $("#keywords-paper-select").value;
+  if (!paperId) return showToast("Select a paper.");
+
+  showLoading("Extracting keywords...");
+
+  const res = await fetch(`${API_BASE}/keywords`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ paper_id: paperId })
+  });
+
+  const data = await res.json();
+  hideLoading();
+
+  if (data.error) return showToast(data.error);
+
+  const container = $("#keywords-cloud");
+  container.innerHTML = "";
+
+  data.keywords.forEach(kw => {
+    const tag = document.createElement("span");
+    tag.className = "keyword-tag";
+    tag.textContent = kw;
+    container.appendChild(tag);
+  });
+
+  show($("#keywords-output"));
+});
+
+/* ================= SECTIONS ================= */
+$("#btn-sections")?.addEventListener("click", async () => {
+  const paperId = $("#sections-paper-select").value;
+  if (!paperId) return showToast("Select a paper.");
+
+  showLoading("Detecting sections...");
+
+  const res = await fetch(`${API_BASE}/sections`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ paper_id: paperId })
+  });
+
+  const data = await res.json();
+  hideLoading();
+
+  if (data.error) return showToast(data.error);
+
+  const output = $("#sections-output");
+  output.innerHTML = "";
+
+  Object.entries(data.sections).forEach(([title, content]) => {
+    output.innerHTML += `
+      <div class="section-card">
+        <h4>${title}</h4>
+        <p>${content}</p>
+      </div>
+    `;
+  });
+
+  show(output);
+});
+
+/* ================= CHAT ================= */
+window.setQuestion = function(btn) {
+  $("#chat-input").value = btn.textContent.trim();
+  sendChatMessage();
+};
+
 $("#btn-send")?.addEventListener("click", sendChatMessage);
 
 $("#chat-input")?.addEventListener("keydown", (e) => {
@@ -304,17 +359,14 @@ $("#chat-input")?.addEventListener("keydown", (e) => {
 });
 
 function addChatBubble(text, role = "ai") {
-  const messagesEl = $("#chat-messages");
-
+  const box = $("#chat-messages");
   const bubble = document.createElement("div");
   bubble.className = `chat-bubble ${role}`;
   bubble.innerHTML = `
     <div class="chat-avatar">${role === "user" ? "U" : "◎"}</div>
     <div class="chat-message-body">${text}</div>
   `;
-
-  messagesEl.appendChild(bubble);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+  box.appendChild(bubble);
 }
 
 async function sendChatMessage() {
@@ -327,67 +379,38 @@ async function sendChatMessage() {
   addChatBubble(question, "user");
   $("#chat-input").value = "";
 
-  try {
-    const res = await fetch(`${API_BASE}/ask`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paper_id: paperId, question })
-    });
+  const res = await fetch(`${API_BASE}/ask`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ paper_id: paperId, question })
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    if (data.error) {
-      addChatBubble(data.error, "ai");
-      return;
-    }
-
-    addChatBubble(data.answer.replace(/\n/g, "<br>"), "ai");
-
-    const user = auth.currentUser;
-    if (user) {
-      const chatRef = push(ref(db, `users/${user.uid}/history/chat`));
-      await set(chatRef, {
-        paper_id: paperId,
-        question,
-        answer: data.answer,
-        timestamp: new Date().toISOString()
-      });
-    }
-
-  } catch (err) {
-    addChatBubble("Cannot connect to backend.", "ai");
+  if (data.error) {
+    addChatBubble(data.error, "ai");
+    return;
   }
+
+  addChatBubble(data.answer.replace(/\n/g, "<br>"), "ai");
 }
 
-// ================= RESTORE FIREBASE =================
+/* ================= FIREBASE RESTORE ================= */
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
 
-  const papersSnapshot = await get(ref(db, `users/${user.uid}/papers`));
+  const snapshot = await get(ref(db, `users/${user.uid}/papers`));
 
-  if (papersSnapshot.exists()) {
-    const papers = Object.values(papersSnapshot.val());
+  if (!snapshot.exists()) return;
 
-    uploadedPapers = [];
+  const papers = Object.values(snapshot.val());
 
-    papers.forEach(paper => {
-      uploadedPapers.push(paper);
-      addPaperToSidebar(paper);
-      addPaperToSelects(paper);
-      activePaperId = paper.paper_id;
-    });
-  }
+  uploadedPapers = [];
 
-  const chatSnapshot = await get(ref(db, `users/${user.uid}/history/chat`));
-
-  if (chatSnapshot.exists()) {
-    const chats = Object.values(chatSnapshot.val());
-
-    chats
-      .filter(chat => chat.paper_id === activePaperId)
-      .forEach(chat => {
-        addChatBubble(chat.question, "user");
-        addChatBubble(chat.answer, "ai");
-      });
-  }
+  papers.forEach(paper => {
+    uploadedPapers.push(paper);
+    addPaperToSidebar(paper);
+    addPaperToSelects(paper);
+    activePaperId = paper.paper_id;
+  });
 });
