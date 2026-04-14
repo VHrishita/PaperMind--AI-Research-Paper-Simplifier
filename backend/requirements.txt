@@ -6,3 +6,9 @@ reportlab==4.1.0
 numpy==1.26.3
 nltk==3.8.1
 gunicorn==21.2.0
+PyPDF2
+scikit-learn
+pandas
+gensim
+matplotlib
+scipy
